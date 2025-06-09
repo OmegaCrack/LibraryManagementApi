@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id               Int      @id @default(autoincrement())
+  title            String
+  author           String
+  isbn             String   @unique
+  category         String
+  totalCopies      Int      @map("total_copies")
+  availableCopies  Int      @map("available_copies")
+  addedDate        DateTime @default(now()) @map("added_date")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  borrowRecords BorrowRecord[]
+
+  @@map("books")
+}
+
+model Student {
+  id                Int      @id @default(autoincrement())
+  name              String
+  email             String   @unique
+  studentId         String   @unique @map("student_id")
+  maxBooksAllowed   Int      @default(5) @map("max_books_allowed")
+  currentBooksCount Int      @default(0) @map("current_books_count")
+  registrationDate  DateTime @default(now()) @map("registration_date")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  borrowRecords BorrowRecord[]
+
+  @@map("students")
+}
+
+model BorrowRecord {
+  id         Int       @id @default(autoincrement())
+  studentId  Int       @map("student_id")
+  bookId     Int       @map("book_id")
+  borrowDate DateTime  @default(now()) @map("borrow_date")
+  dueDate    DateTime  @map("due_date")
+  returnDate DateTime? @map("return_date")
+  status     String    @default("borrowed") // borrowed, returned, overdue
+  fineAmount Float     @default(0) @map("fine_amount")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@map("borrow_records")
+}
